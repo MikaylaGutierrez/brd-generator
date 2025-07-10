@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>BRD Generator – Step 2</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    /* —— Reset / base —— */
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Inter,Arial,sans-serif;background:#fff;display:flex;flex-direction:column;align-items:center;min-height:100vh}
+    h1{font-size:42px;font-weight:700;text-align:center;margin:80px 16px 48px;line-height:1.2}
+
+    /* —— Containers —— */
+    .flex{display:flex;gap:48px;flex-wrap:wrap;justify-content:center;width:100%;max-width:1040px}
+    .card{width:420px;border:1px solid #000;border-radius:20px;padding:40px;background:#fff}
+    .card h2{text-align:center;font-size:32px;font-weight:400;margin-bottom:32px}
+
+    label{display:block;font-size:16px;margin-top:16px;margin-bottom:8px;color:#1E1E1E}
+    input{width:100%;padding:12px 16px;font-size:14px;color:#1E1E1E;border:1px solid #D9D9D9;border-radius:8px;background:#fff}
+    input::placeholder{color:#757575}
+
+    select {
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 14px;
+      color: #1E1E1E;
+      border: 1px solid #D9D9D9;
+      border-radius: 8px;
+      background: #fff;
+    }
+    select:invalid {color: #757575}
+
+    .btn{width:100%;margin-top:32px;padding:12px;font-size:24px;border:none;border-radius:8px;background:#2C2C2C;color:#F5F5F5;cursor:pointer;transition:opacity .2s}
+    .btn:hover{opacity:.9}
+
+    /* —— Added list —— */
+    .list{display:flex;flex-direction:column;gap:12px}
+    .list-item{padding:10px 12px;background:#E5E5E5;border-radius:6px;font-size:14px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .list-item.active{background:#C2C2C2}
+
+    /* Submit button */
+    #submitBtn{margin:48px auto 120px;width:320px;font-size:28px}
+
+    @media(max-width:480px){h1{font-size:28px;margin-top:40px}.card{width:90%;padding:24px}.btn,#submitBtn{font-size:20px}}
+  </style>
+</head>
+<body>
+  <h1>Business Requirements Document (BRD) Generator</h1>
+
+  <div class="flex">
+    <!-- Scoping form -->
+    <div class="card">
+      <h2>Scoping Entries</h2>
+      <form id="entryForm" autocomplete="off">
+        <label for="docTitle">Document Title</label>
+        <input type="text" id="docTitle" name="document_title" placeholder="[DEXTERTON] Minutes of the Meeting (R2R)" required />
+
+        <label for="purpose">Purpose</label>
+        <input type="text" id="purpose" name="purpose" placeholder="Phase 4 Scoping interview" required />
+
+        <label for="cycle">Business Cycle</label>
+        <select id="cycle" name="business_cycle" required>
+          <option value="" disabled selected>Select a cycle</option>
+          <option value="Record-to-Report">Record-to-Report</option>
+          <option value="Order-to-Cash">Order-to-Cash</option>
+          <option value="Procure-to-Pay">Procure-to-Pay</option>
+          <option value="Hire-to-Retire">Inventory Management</option>
+        </select>
+
+        <label for="gdoc">Google Doc Link</label>
+        <input type="url" id="gdoc" name="gdoc_link" placeholder="https://docs.google.com/…" required />
+
+        <button class="btn" type="submit" id="addBtn">Add</button>
+      </form>
+    </div>
+
+    <!-- Added list -->
+    <div class="card">
+      <h2>Added Entries</h2>
+      <div class="list" id="entriesList"></div>
+    </div>
+  </div>
+
+  <!-- Submit all entries -->
+  <button class="btn" id="submitBtn">Submit</button>
+
+  <script>
+    interface Entry {
+      document_title:string;
+      purpose:string;
+      business_cycle:string;
+      gdoc_link:string;
+    }
+  </script>
+  <script>
+    (function(){
+      const form   = document.getElementById('entryForm');
+      const listEl = document.getElementById('entriesList');
+      const submitBtn = document.getElementById('submitBtn');
+      const fields = {
+        document_title: document.getElementById('docTitle'),
+        purpose:        document.getElementById('purpose'),
+        business_cycle: document.getElementById('cycle'),
+        gdoc_link:      document.getElementById('gdoc')
+      };
+
+      const entries = [];
+      let editIndex = null; // null → add mode; number → editing existing
+
+      function renderList(){
+        listEl.innerHTML = '';
+        entries.forEach((e,idx)=>{
+          const div=document.createElement('div');
+          div.className='list-item'+(idx===editIndex?' active':'');
+          div.textContent=e.document_title;
+          div.dataset.index=idx;
+          listEl.appendChild(div);
+        });
+      }
+
+      function clearForm(){
+        Object.values(fields).forEach(f=>f.value='');
+        editIndex=null;
+        renderList();
+      }
+
+      listEl.addEventListener('click',e=>{
+        const target=e.target;
+        if(!target.classList.contains('list-item')) return;
+        const idx=parseInt(target.dataset.index,10);
+        const entry=entries[idx];
+        // populate form
+        fields.document_title.value=entry.document_title;
+        fields.purpose.value=entry.purpose;
+        fields.business_cycle.value=entry.business_cycle;
+        fields.gdoc_link.value=entry.gdoc_link;
+        editIndex=idx;
+        renderList();
+      });
+
+      form.addEventListener('submit',ev=>{
+        ev.preventDefault();
+        const newEntry={
+          document_title:fields.document_title.value.trim(),
+          purpose:fields.purpose.value.trim(),
+          business_cycle:fields.business_cycle.value.trim(),
+          gdoc_link:fields.gdoc_link.value.trim()
+        };
+        if(editIndex===null){
+          entries.push(newEntry);
+        }else{
+          entries[editIndex]=newEntry;
+        }
+        clearForm();
+      });
+
+      submitBtn.addEventListener('click', async () => {
+      if (!entries.length) {
+        alert('Please add at least one entry');
+        return;
+      }
+    
+      const step1Data = JSON.parse(sessionStorage.getItem("brdStep1") || "{}");
+    
+      const finalPayload = {
+        ...step1Data,
+        entries
+      };
+    
+      try {
+        const res = await fetch("https://mikag21.app.n8n.cloud/webhook-test/brd-submit-attempt2", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(finalPayload)
+        });
+    
+        const txt = await res.text();
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${txt}`);
+    
+        alert("Submitted successfully!");
+        sessionStorage.clear(); // Cleanup
+        window.location.href = "/webhook/success"; // Optional redirect
+      } catch (err) {
+        console.error(err);
+        alert(`Submission failed: ${err.message}`);
+      }
+    });
+
+      // first render (empty)
+      renderList();
+    })();
+  </script>
+</body>
+</html>
