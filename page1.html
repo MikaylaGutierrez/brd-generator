@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>BRD Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    /* ——— Base layout ——— */
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:Inter,Arial,sans-serif;
+      background:#fff;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      min-height:100vh;
+    }
+    h1{
+      font-size:48px;
+      font-weight:700;
+      text-align:center;
+      margin:120px 24px 0;
+      line-height:1.2;
+    }
+
+    /* ——— Card ——— */
+    .card{
+      margin:40px auto 0;
+      width:360px;
+      border:1px solid #000;
+      border-radius:20px;
+      padding:40px 60px;
+      background:#fff;
+    }
+    .card h2{
+      font-size:32px;
+      font-weight:400;
+      text-align:center;
+      margin-bottom:24px;
+      line-height:1.2;
+    }
+
+    /* ——— Form fields ——— */
+    label{
+      display:block;
+      font-size:16px;
+      margin-top:16px;
+      margin-bottom:8px;
+      color:#1E1E1E;
+    }
+    input,select{
+      width:100%;
+      padding:12px 16px;
+      font-size:14px;
+      color:#1E1E1E;
+      border:1px solid #D9D9D9;
+      border-radius:8px;
+      background:#fff;
+    }
+    input::placeholder{color:#757575}
+
+    /* ——— Button ——— */
+    button{
+      width:100%;
+      margin-top:32px;
+      padding:12px;
+      font-size:28px;
+      border:none;
+      border-radius:8px;
+      background:#2C2C2C;
+      color:#F5F5F5;
+      cursor:pointer;
+      transition:opacity .2s ease;
+    }
+    button:hover{opacity:.9}
+
+    /* ——— Responsive ——— */
+    @media(max-width:480px){
+      h1{font-size:32px;margin-top:60px}
+      .card{width:90%;padding:24px}
+      button{font-size:20px}
+    }
+  </style>
+</head>
+<body>
+  <!-- Heading -->
+  <h1>Business Requirements Document (BRD) Generator</h1>
+
+  <!-- Form Card -->
+  <form class="card" id="brdForm">
+    <h2>Enter BRD Details</h2>
+
+    <label for="author">Author Name</label>
+    <input type="text" id="author" name="author_name" placeholder="Juan Dela Cruz" required />
+
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email" placeholder="juan.delacruz@achievewithoutborders.com" required />
+
+    <label for="title">Title (Client Name)</label>
+    <input type="text" id="title" name="client_title" placeholder="Dexterton" required />
+
+    <label for="full_name">Full Client Name</label>
+    <input type="text" id="full_name" name="client_full_name" placeholder="Dexterton Corporation" required />
+
+    <label for="industry">Industry</label>
+    <input type="text" id="industry" name="industry" placeholder="Home Retail" required />
+
+    <input type="hidden" name="version" id="version" value="v1.0" />
+    <input type="hidden" name="company" id="company" value="Achieve Without Borders, Inc." />
+    <input type="hidden" name="date" id="date" />
+    
+    <button type="submit">Next</button>
+  </form>
+
+  <!-- Submit to n8n Webhook -->
+<script>
+  document.getElementById("date").value = new Date().toLocaleDateString("en-CA");
+  document.getElementById('brdForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const formData = {
+      author_name: document.getElementById('author').value,
+      email: document.getElementById('email').value,
+      client_title: document.getElementById('title').value,
+      client_full_name: document.getElementById('full_name').value,
+      industry: document.getElementById('industry').value,
+      version: document.getElementById('version').value,
+      company: document.getElementById('company').value,
+      date: document.getElementById('date').value
+    };
+    sessionStorage.setItem("brdStep1", JSON.stringify(formData));
+    window.location.href = "/webhook/brd-2-attempt2"; // Redirect without posting
+  });
+</script>
+
+</body>
+</html>
